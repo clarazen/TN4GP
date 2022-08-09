@@ -19,7 +19,7 @@ function ALS_krtt(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter::Int,ϵ
         for d = 1:D-1
             ttm     = getU2(tt,d)   # works       
             U       = krtimesttm(kr,transpose(ttm)) # works
-            tmp     = svd((U*U')\(U*y))
+            tmp     = svd(reshape((U*U')\(U*y),(size(tt[d],1)*size(tt[d],2),size(tt[d+1],1)*size(tt[d+1],2))))
             R       = length(tmp.S);
             sv2     = cumsum(reverse(tmp.S).^2);
             tr      = Int(findfirst(sv2 .> ϵ^2))-1;
