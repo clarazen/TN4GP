@@ -33,6 +33,8 @@ inv2 = inv(W_n'*tmp*W_n)
 wtt = ALS_krtt(y,Φ,rnks,maxiter,true) # works
 norm(y-khr2mat(Φ)*mps2vec(wtt))/norm(y)
 
+@run ALS_krtt(y,Φ,rnks,maxiter,mpo2mat(invΛ),hyp[3],true); 
+
 # with ortho
 wtt,mean,covw,res = ALS_krtt(y,Φ,rnks,maxiter,mpo2mat(invΛ),hyp[3],true); 
 m_tt              = khr2mat(Φstar)*mps2vec(wtt);
