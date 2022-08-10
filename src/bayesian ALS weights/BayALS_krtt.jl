@@ -45,8 +45,9 @@ function ALS_krtt(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter::Int,in
         tmp      = rand(rnks[i]*Md, rnks[i+1])
         cores[i] = reshape(Matrix(tmp),(rnks[i], Md, rnks[i+1]))
     end
-    tt = MPT(cores)
+    tt0 = MPT(cores)
 ###########################################################################
+    tt       = tt0
     mean     = Vector{Vector}(undef,D)
     cova     = Vector{Matrix}(undef,D)
     res      = zeros(maxiter,D)

@@ -9,8 +9,7 @@ function ALS_krtt(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter)
 ##########################################################################
     cores = Vector{Array{Float64,3}}(undef,D)
     for i = 1:D # creating initial tensor train
-        tmp = qr(rand(rnks[i]*Md, rnks[i+1]))
-        cores[i] = reshape(Matrix(tmp),(rnks[i], Md, rnks[i+1]))
+        cores[i] = rand(rnks[i], Md, rnks[i+1])
     end
     tt0 = MPT(cores)
 ###########################################################################
@@ -40,7 +39,7 @@ function ALS_krtt(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,ortho::
         cores[i] = reshape(Matrix(tmp.Q),(rnks[i], Md, rnks[i+1]));
     end
     cores[D] = reshape(rand(rnks[D]*Md),(rnks[D], Md, 1));
-    tt0 = MPT(cores,D);
+    tt0      = MPT(cores,D);
 ###########################################################################
     tt    = tt0
     res   = zeros(maxiter,2D)
