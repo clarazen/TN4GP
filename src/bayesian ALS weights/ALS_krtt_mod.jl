@@ -20,7 +20,7 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
     mean  = Vector{Vector}(undef,D)
     cova  = Vector{Matrix}(undef,D)
     #noco     = zeros(maxiter,2D)
-    #res   = zeros(maxiter,2D)
+    res   = zeros(maxiter,2D)
     swipe = [collect(D:-1:2)..., collect(1:D-1)...];
     Dir   = Int.([-ones(1,D-1)...,ones(1,D-1)...]);
     for iter = 1:maxiter
@@ -34,11 +34,11 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
             tt[d]   = reshape(mean[d],size(tt0[d]))
             cova[d] = inv(tmp)
             tt,cova[d]  = shiftpMPTnorm(tt,cova[d],d,Dir[k])      
-            #res[iter,k] = norm(y - khr2mat(Φ)*mps2vec(tt))/norm(y)
+            res[iter,k] = norm(y - khr2mat(kr)*mps2vec(tt))/norm(y)
             #noco[iter,k] = norm(cova[d])
         end
     end
-    return tt,mean,cova#,res,noco
+    return tt,mean,cova,res#,noco
 end
 
 
@@ -60,7 +60,7 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
         tt       = tt0
         mean     = Vector{Vector}(undef,D)
         cova     = Vector{Matrix}(undef,D)
-        #res      = zeros(maxiter,D)
+        res      = zeros(maxiter,D)
         #noco     = zeros(maxiter,D)
         for iter = 1:maxiter
             for d = 1:D
@@ -75,5 +75,5 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
                 #res[iter,d] = norm(y - kr2mat(Φ)*mps2vec(tt))/norm(y)
             end
         end
-        return tt,mean,cova
+        return tt,mean,cova,res
     end
