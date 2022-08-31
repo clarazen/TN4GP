@@ -8,7 +8,7 @@ function colectofbasisfunc(M::Vector,X::Matrix{Float64},ℓ::Vector,σ_f::Float6
     S  = Vector{Matrix}(undef,D);
     for d = 1:D
         w    = collect(1:M[d])';
-        tmp  = σ_f*sqrt(2π*ℓ[d]) .* exp.(- ℓ[d]/2 .* ((π.*w')./(2L[d])).^2 )
+        tmp  = σ_f^(1/D)*sqrt(2π*ℓ[d]) .* exp.(- ℓ[d]/2 .* ((π.*w')./(2L[d])).^2 )
         Λ[d] = Diagonal(1 ./ tmp)
         S[d] = Diagonal(sqrt.(tmp));
         Φ[d] = (1/sqrt(L[d])) .*sinpi.(  ((X[:,d].+L[d])./2L[d]).*w);
@@ -25,7 +25,7 @@ function colectofbasisfunc(M::Vector,X::Matrix{Float64},ℓ::Vector,σ_f::Float6
     S  = Vector{Matrix}(undef,D);
     for d = 1:D
         w     = collect(1:M[d])';
-        S     =  σ_f*sqrt(2π*ℓ[d]) .* exp.(- ℓ[d]/2 .* ((π.*w')./(2L[d])).^2 )
+        S     =  σ_f^(1/D)*sqrt(2π*ℓ[d]) .* exp.(- ℓ[d]/2 .* ((π.*w')./(2L[d])).^2 )
         Φ_[d] = (1/sqrt(L[d])) .*sinpi.(  ((X[:,d].+L[d])./2L[d]).*w).*sqrt.(S)';
     end
 
