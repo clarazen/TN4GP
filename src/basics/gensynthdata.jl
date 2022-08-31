@@ -13,6 +13,22 @@ function gensynthdata(N::Int64,D::Int64,hyp::Vector)
     return X, y, f, K 
 end
 
+function gensynthdata(N::Int64,D::Int64,hyp::Vector,M::Int)
+    σ_n   = hyp[3];
+    X     = zeros(N,D);
+    jitter = sqrt(eps(1.))
+    for d = 1:D
+        for n = 1:N
+            X[n,d] = rand(1)[1].* 2 .-1
+        end
+    end
+    K      = covSE(X,X[1:M,:],hyp);
+    Kuu    = covSE(X[1:M,:],X[1:M,:],hyp);
+    f      = K*inv(cholesky(Kuu+sqrt(eps(1.)*Matrix(I,M,M))).L)*randn(M);
+    y      = f + σ_n*randn(size(f,1));
+    return X, y, f, K 
+end
+
 function gensynthdata(p::Int64,hyp::Vector,tr::Float64)
     σ_n    = hyp[3];
     jitter = sqrt(eps(1.))
