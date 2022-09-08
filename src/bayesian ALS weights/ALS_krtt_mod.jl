@@ -20,7 +20,7 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
     mean  = Vector{Vector}(undef,D)
     cova  = Vector{Matrix}(undef,D)
     #noco     = zeros(maxiter,2D)
-    res   = zeros(maxiter,2D)
+    res   = zeros(maxiter,2D-2)
     swipe = [collect(D:-1:2)..., collect(1:D-1)...];
     Dir   = Int.([-ones(1,D-1)...,ones(1,D-1)...]);
     for iter = 1:maxiter
@@ -38,6 +38,12 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
             #noco[iter,k] = norm(cova[d])
         end
     end
+        ttm     = getU(tt,D)   # works       
+        U       = krtimesttm(kr,transpose(ttm)) # works
+        tmp     = U*U';
+        tmp     = tmp + σ_n*Matrix(I,size(tmp));
+        cova[D] = inv(tmp)
+
     return tt,mean,cova,res#,noco
 end
 
