@@ -76,6 +76,25 @@ function gengriddata(Md::Int,D::Int,min::Vector,max::Vector,m::Bool)
     end
 end
 
+function gengriddata(Md::Vector,D::Int,min::Vector,max::Vector,m::Bool)
+    coord = Vector{Vector}(undef,D)
+    X     = zeros(prod(Md),D)
+    for d = 1:D
+        coord[d] = range(min[d],max[d],length=Md[d]) # coordinate in dth dimension
+    end
+    Coord = Tuple(coord)
+    if m == true
+        i=1;
+        for d = D:-1:1
+            X[:,i] = getindex.(Iterators.product(Coord...), d)[:]
+            i = i+1
+        end
+        return X,coord
+    else
+        return coord
+    end
+end
+
 function covSE(Xp::Matrix{Float64},Xq::Matrix{Float64},hyp::Vector)
     ℓ     = hyp[1];
     σ_f   = hyp[2];
