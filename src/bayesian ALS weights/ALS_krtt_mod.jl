@@ -18,8 +18,6 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
 ###########################################################################
     tt    = tt0
     mean  = Vector{Vector}(undef,D)
-    cova  = Vector{Matrix}(undef,D)
-    #noco     = zeros(maxiter,2D)
     res   = zeros(maxiter,2D-2)
     swipe = [collect(D:-1:2)..., collect(1:D-1)...];
     Dir   = Int.([-ones(1,D-1)...,ones(1,D-1)...]);
@@ -32,19 +30,32 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
             tmp     = tmp + σ_n*Matrix(I,size(tmp));
             mean[d] = tmp\(U*y)
             tt[d]   = reshape(mean[d],size(tt0[d]))
-            cova[d] = inv(tmp)
-            tt,cova[d]  = shiftpMPTnorm(tt,cova[d],d,Dir[k])      
+            tt      = shiftMPTnorm(tt,d,Dir[k])      
+            #cova[d] = inv(tmp)
+            #tt,cova[d]  = shiftpMPTnorm(tt,cova[d],d,Dir[k])      
             res[iter,k] = norm(y - khr2mat(kr)*mps2vec(tt))/norm(y)
             #noco[iter,k] = norm(cova[d])
         end
     end
-        ttm     = getU(tt,D)   # works       
-        U       = krtimesttm(kr,transpose(ttm)) # works
-        tmp     = U*U';
-        tmp     = tmp + σ_n*Matrix(I,size(tmp));
-        cova[D] = inv(tmp)
+    
+    cova_wnorm = Vector{Matrix}(undef,D)   # covas that have norm
+    cova_lorth = Vector{Matrix}(undef,D) # covas that are 'left-orthogonal'
+    cova_rorth = Vector{Matrix}(undef,D) # covas that are 'right-orthogonal'
+    for k = 1:2D-2
+        d                = swipe[k];
+        U                = krtimesttm(kr,transpose(getU(tt,d)))
+        tmp              = U*U';
+        tmp              = tmp + σ_n*Matrix(I,size(tmp));     
+        cova_wnorm[d]    = inv(tmp)
+        if Dir[k] == -1
+            tt,cova_rorth[d] = shiftpMPTnorm(tt,cova_wnorm[d],d,Dir[k])     
+        else
+            tt,cova_lorth[d] = shiftpMPTnorm(tt,cova_wnorm[d],d,Dir[k]) 
+        end
+    end
+    #cova = Vector{Vector{Matrix{Float64}}}(undef,D)
 
-    return tt,mean,cova,res#,noco
+    return tt,mean,cova_wnorm,cova_lorth,cova_rorth,res
 end
 
 
