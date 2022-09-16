@@ -33,29 +33,38 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
             tt      = shiftMPTnorm(tt,d,Dir[k])      
             #cova[d] = inv(tmp)
             #tt,cova[d]  = shiftpMPTnorm(tt,cova[d],d,Dir[k])      
-            res[iter,k] = norm(y - khr2mat(kr)*mps2vec(tt))/norm(y)
+            #res[iter,k] = norm(y - khr2mat(kr)*mps2vec(tt))/norm(y)
             #noco[iter,k] = norm(cova[d])
         end
     end
     
-    cova_wnorm = Vector{Matrix}(undef,D)   # covas that have norm
-    cova_lorth = Vector{Matrix}(undef,D) # covas that are 'left-orthogonal'
-    cova_rorth = Vector{Matrix}(undef,D) # covas that are 'right-orthogonal'
-    for k = 1:2D-2
-        d                = swipe[k];
-        U                = krtimesttm(kr,transpose(getU(tt,d)))
-        tmp              = U*U';
-        tmp              = tmp + σ_n*Matrix(I,size(tmp));     
-        cova_wnorm[d]    = inv(tmp)
-        if Dir[k] == -1
-            tt,cova_rorth[d] = shiftpMPTnorm(tt,cova_wnorm[d],d,Dir[k])     
-        else
-            tt,cova_lorth[d] = shiftpMPTnorm(tt,cova_wnorm[d],d,Dir[k]) 
-        end
-    end
-    #cova = Vector{Vector{Matrix{Float64}}}(undef,D)
+    #cova_wnorm = Vector{Matrix}(undef,D)   # covas that have norm
+    #cova_lorth = Vector{Matrix}(undef,D) # covas that are 'left-orthogonal'
+    #cova_rorth = Vector{Matrix}(undef,D) # covas that are 'right-orthogonal'
+    #for k = 1:2D-2
+    #    d                = swipe[k];
+    #    U                = krtimesttm(kr,transpose(getU(tt,d)))
+    #    tmp              = U*U';
+    #    tmp              = tmp + σ_n*Matrix(I,size(tmp));     
+    #    cova_wnorm[d]    = inv(tmp)
+    #    if Dir[k] == -1
+    #        tt,cova_rorth[d] = shiftpMPTnorm(tt,cova_wnorm[d],d,Dir[k])     
+    #    else
+    #        tt,cova_lorth[d] = shiftpMPTnorm(tt,cova_wnorm[d],d,Dir[k]) 
+    #    end
+    #end
+    cova = Matrix{Matrix{Float64}}(undef,D,D)
+    #for d = 1:D
+    #    if d>1
+    #        cova[d,1:d-1]   = cova_lorth[1:d-1]
+    #    end
+    #    cova[d,d]           = cova_wnorm[d]
+    #    if d<D
+    #        cova[d,d+1:end] = cova_rorth[d+1:end]
+    #    end
+    #end
 
-    return tt,mean,cova_wnorm,cova_lorth,cova_rorth,res
+    return tt,mean,cova,res # return all site-k TTs
 end
 
 
@@ -77,8 +86,6 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
         tt       = tt0
         mean     = Vector{Vector}(undef,D)
         cova     = Vector{Matrix}(undef,D)
-        res      = zeros(maxiter,D)
-        #noco     = zeros(maxiter,D)
         for iter = 1:maxiter
             for d = 1:D
                 ttm     = getU(tt,d)   # works       
@@ -88,8 +95,6 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
                 mean[d] = tmp\(U*y)
                 tt[d]   = reshape(mean[d],size(tt0[d]))
                 cova[d] = inv(tmp)
-                #noco[iter,d] = norm(cova[d])
-                #res[iter,d] = norm(y - kr2mat(Φ)*mps2vec(tt))/norm(y)
             end
         end
         return tt,mean,cova,res
