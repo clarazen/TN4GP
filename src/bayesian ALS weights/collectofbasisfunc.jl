@@ -1,4 +1,5 @@
 function colectofbasisfunc(M::Vector,X::Matrix{Float64},ℓ::Vector,σ_f::Float64,L::Vector)
+ # computes Φ,S,Λ such that Φ*S*S*Φ' approx K and Λ contains inserse eigenvalues
     N = size(X,1)
     D = size(X,2)
     Φ = Vector{Matrix}(undef,D)
@@ -15,6 +16,20 @@ function colectofbasisfunc(M::Vector,X::Matrix{Float64},ℓ::Vector,σ_f::Float6
     end
 
     return Φ,kr2ttm(Λ),kr2ttm(S)
+end
+
+function colectofbasisfunc(Φ::Vector{Matrix},S::MPT{4},trunc::Float64)
+    
+    Φmat = khr2mat(Φ)
+    ev   = diag(mpo2mat(S)).^2
+    perm = sortperm(ev,rev=true)
+    ev   = sort(ev,rev=true)
+    indx = findfirst(ev.<trunc)
+
+    Φmat = Φmat[:,perm[1:indx]]
+    Λ    = diagm(1 ./ ev[1:indx])
+    
+    return Φmat,Λ
 end
 
 function colectofbasisfunc(M::Vector,X::Matrix{Float64},ℓ::Vector,σ_f::Float64,L::Vector,bool::Bool)
