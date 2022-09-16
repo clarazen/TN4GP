@@ -105,9 +105,9 @@ function covSE(Xp::Matrix{Float64},Xq::Matrix{Float64},hyp::Vector)
         for j = 1:size(Xq,1)
             sum = 0
             for d = 1:D
-                sum = sum + (Xp[i,d]-Xq[j,d])^2/ℓ[d]
+                sum = sum + (Xp[i,d]-Xq[j,d])^2/2ℓ[d]
             end
-            K[i,j] = σ_f * exp(-(sum/2))
+            K[i,j] = σ_f * exp(-sum)
         end
     end
     return K
@@ -123,9 +123,9 @@ function covSE(Xp::Vector{Float64},Xq::Vector{Float64},hyp::Vector{Any})
         for j = 1:size(Xq,1)
             sum = 0
             for d = 1:D
-                sum = sum + (Xp[i,d]-Xq[j,d])^2/ℓ[d]
+                sum = sum + (Xp[i,d]-Xq[j,d])^2/2ℓ[d]
             end
-            K[i,j] = σ_f * exp(-(sum/2))
+            K[i,j] = σ_f * exp(-sum/2)
         end
     end
     return K
@@ -157,9 +157,9 @@ function covSE(xp::Matrix,xq::Matrix,hyp::Vector{Any},tr::Float64)
         for j = 1:i
             sum = 0
             for d = 1:D
-                sum = sum + (xp[i,d]-xq[j,d])^2/ℓ[d]
+                sum = sum + (xp[i,d]-xq[j,d])^2/2ℓ[d]
             end
-            val = σ_f * exp(-(sum/2))
+            val = σ_f * exp(-sum)
             if val > tr
                 K[i,j] = val
                 K[j,i] = val
@@ -182,7 +182,7 @@ function fullGP(K::Matrix,X::Vector,Xstar::Vector,y::Vector,hyp::Vector,plot::Bo
     mstar = Ks*α;
     v     = L\Ks';
     Pstar = Kss - v'*v;
-    std   = sqrt.(diag(Pstar));
+    std   = 2*sqrt.(diag(Pstar));
 
     if plot == true
         scatter(X,f)
