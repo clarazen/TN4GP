@@ -1,5 +1,5 @@
 function gensynthdata(N::Int64,D::Int64,hyp::Vector)
-    σ_n   = hyp[3];
+    σ_n   = sqrt(hyp[3]);
     X     = zeros(N,D);
     jitter = sqrt(eps(1.))
     for d = 1:D
@@ -14,7 +14,7 @@ function gensynthdata(N::Int64,D::Int64,hyp::Vector)
 end
 
 function gensynthdata(N::Int64,D::Int64,hyp::Vector,M::Int)
-    σ_n   = hyp[3];
+    σ_n   = sqrt(hyp[3]);
     X     = zeros(N,D);
     jitter = sqrt(eps(1.))
     for d = 1:D
@@ -30,7 +30,7 @@ function gensynthdata(N::Int64,D::Int64,hyp::Vector,M::Int)
 end
 
 function gensynthdata(p::Int64,hyp::Vector,tr::Float64)
-    σ_n    = hyp[3];
+    σ_n    = sqrt(hyp[3]);
     jitter = sqrt(eps(1.))
     X      = zeros(p);
     for i = 1:p
@@ -44,7 +44,7 @@ function gensynthdata(p::Int64,hyp::Vector,tr::Float64)
 end
 
 function gensynthdata(p::Int64,hyp::Vector{Any})
-    σ_n   = hyp[3];
+    σ_n    = sqrt(hyp[3]);
     jitter = sqrt(eps(1.))
     X      = zeros(p,1);
     for i = 1:p
@@ -66,7 +66,7 @@ function gengriddata(Md::Int,D::Int,min::Vector,max::Vector,m::Bool)
     Coord = Tuple(coord)
     if m == true
         i=1;
-        for d = D:-1:1
+        for d = 1:D
             X[:,i] = getindex.(Iterators.product(Coord...), d)[:]
             i = i+1
         end

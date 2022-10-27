@@ -1,9 +1,9 @@
-function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_n::Float64,bool::Bool)
+function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,λ::Float64,σ_n::Float64)
     # computes components of tt from y = kr*tt with ALS:
     # tt is first split into the to be updates component and the rest U, 
     # then U and kr are multiplied with each other giving Ũ
     # then y = Ũ*tt[d] is solved for tt[d]
-    # version with orthogonalization (dunno if it is correct)
+    # version with orthogonalization 
     D     = size(kr,1)
     Md    = size(kr[1],2)
     N     = length(y)
@@ -23,79 +23,77 @@ function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_
     Dir   = Int.([-ones(1,D-1)...,ones(1,D-1)...]);
     for iter = 1:maxiter
         for k = 1:2D-2
-            d       = swipe[k];
-            ttm     = getU(tt,d)   # works       
-            U       = krtimesttm(kr,transpose(ttm)) # works
-            tmp     = U*U';
-            tmp     = tmp + σ_n*Matrix(I,size(tmp));
-            mean[d] = tmp\(U*y)
-            tt[d]   = reshape(mean[d],size(tt0[d]))
-            tt      = shiftMPTnorm(tt,d,Dir[k])      
-            #cova[d] = inv(tmp)
-            #tt,cova[d]  = shiftpMPTnorm(tt,cova[d],d,Dir[k])      
-            #res[iter,k] = norm(y - khr2mat(kr)*mps2vec(tt))/norm(y)
-            #noco[iter,k] = norm(cova[d])
+            d           = swipe[k];
+            ttm         = getU(tt,d)   # works       
+            U           = krtimesttm(kr,transpose(ttm)) # works
+            tmp         = U*U';
+            tmp         = tmp + λ*Matrix(I,size(tmp));
+            mean[d]     = tmp\(U*y)
+            tt[d]       = reshape(mean[d],size(tt0[d]))
+            tt          = shiftMPTnorm(tt,d,Dir[k])        
+            res[iter,k] = norm(y - khr2mat(kr)*mps2vec(tt))/norm(y)
         end
     end
     
-    #cova_wnorm = Vector{Matrix}(undef,D)   # covas that have norm
-    #cova_lorth = Vector{Matrix}(undef,D) # covas that are 'left-orthogonal'
-    #cova_rorth = Vector{Matrix}(undef,D) # covas that are 'right-orthogonal'
-    #for k = 1:2D-2
-    #    d                = swipe[k];
-    #    U                = krtimesttm(kr,transpose(getU(tt,d)))
-    #    tmp              = U*U';
-    #    tmp              = tmp + σ_n*Matrix(I,size(tmp));     
-    #    cova_wnorm[d]    = inv(tmp)
-    #    if Dir[k] == -1
-    #        tt,cova_rorth[d] = shiftpMPTnorm(tt,cova_wnorm[d],d,Dir[k])     
-    #    else
-    #        tt,cova_lorth[d] = shiftpMPTnorm(tt,cova_wnorm[d],d,Dir[k]) 
-    #    end
-    #end
-    cova = Matrix{Matrix{Float64}}(undef,D,D)
-    #for d = 1:D
-    #    if d>1
-    #        cova[d,1:d-1]   = cova_lorth[1:d-1]
-    #    end
-    #    cova[d,d]           = cova_wnorm[d]
-    #    if d<D
-    #        cova[d,d+1:end] = cova_rorth[d+1:end]
-    #    end
-    #end
+    return tt,res
+end
 
-    return tt,mean,cova,res # return all site-k TTs
+function ALS_(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,λ::Float64,σ_n::Float64)
+    # computes components of tt from y = kr*tt with ALS:
+    # tt is first split into the to be updates component and the rest U, 
+    # then U and kr are multiplied with each other giving Ũ
+    # then y = Ũ*tt[d] is solved for tt[d]
+    # version with orthogonalization 
+    D     = size(kr,1)
+    Md    = size(kr[1],2)
+    N     = length(y)
+##########################################################################
+    cores       = Vector{Array{Float64,3}}(undef,D);
+    for i = 1:D-1 # creating site-D canonical initial tensor train
+        tmp = qr(rand(rnks[i]*Md, rnks[i+1]));
+        cores[i] = reshape(Matrix(tmp.Q),(rnks[i], Md, rnks[i+1]));
+    end
+    cores[D]    = reshape(rand(rnks[D]*Md),(rnks[D], Md, 1));
+    tt0         = MPT(cores,D);
+    ttm         = getU(tt0,D)
+    U           = krtimesttm(kr,transpose(ttm))
+###########################################################################
+    mean  = Vector{Vector}(undef,D)
+    res   = zeros(maxiter,2D-2)
+    swipe = [collect(D:-1:2)..., collect(1:D-1)...];
+    Dir   = Int.([-ones(1,D-1)...,ones(1,D-1)...]);
+    for iter = 1:maxiter
+        for k = 1:2D-2
+            d           = swipe[k];
+            tmp         = U*U';
+            tmp         = tmp + λ*Matrix(I,size(tmp));
+            mean[d]     = tmp\(U*y)
+            tt[d]       = reshape(mean[d],size(tt0[d]))
+            tt          = shiftMPTnorm(tt,d,Dir[k])        
+            res[iter,k] = norm(y - khr2mat(kr)*mps2vec(tt))/norm(y)
+
+            
+        end
+    end
+    
+    return tt,res
 end
 
 
-function ALS_krtt_mod(y::Vector,kr::Vector{Matrix},rnks::Vector{Int},maxiter,σ_n::Float64)
-    # Lambda is absorbed into Phi, simplifying the prior
-    # this seems to be numerically more stable
-    # without orthogonalization
-        D     = size(kr,1)
-        Md    = size(kr[1],2)
-        N     = length(y)
-    ##########################################################################
-        cores = Vector{Array{Float64,3}}(undef,D)
-        for i = 1:D # creating initial tensor train
-            tmp = rand(rnks[i]*Md, rnks[i+1])
-            cores[i] = reshape(tmp,(rnks[i], Md, rnks[i+1]))
+function khr2ttm(W::Vector{Matrix})
+    D      = size(W,1)
+    N      = size(W[1],1)
+    M      = size(W[1],2)
+    coresW = Vector{Array{Float64,4}}(undef,D)
+    
+    coresW[1] = reshape(W[1]',(1,1,M,N))
+    for d = 2:D
+        coresW[d] = zeros(N,1,M,N)
+        for m = 1:M
+            coresW[d][:,1,m,:] = Diagonal(W[d][:,m])
         end
-        tt0      = MPT(cores)
-    ###########################################################################
-        tt       = tt0
-        mean     = Vector{Vector}(undef,D)
-        cova     = Vector{Matrix}(undef,D)
-        for iter = 1:maxiter
-            for d = 1:D
-                ttm     = getU(tt,d)   # works       
-                W       = mpo2mat(ttm) # avoid this in future
-                U       = krtimesttm(kr,transpose(ttm)) # works
-                tmp     = U*U' + σ_n*W'*W
-                mean[d] = tmp\(U*y)
-                tt[d]   = reshape(mean[d],size(tt0[d]))
-                cova[d] = inv(tmp)
-            end
-        end
-        return tt,mean,cova,res
     end
+    coresW[D] = permutedims(coresW[D],[1,4,3,2])
+    
+    return MPT(coresW)
+end
