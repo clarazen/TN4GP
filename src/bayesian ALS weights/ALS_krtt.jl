@@ -97,20 +97,3 @@ function kr2ttm(A::Vector{Matrix})
 end
 
 
-function initialTT(D::Int,Md::Int,rnks::Vector,b::Bool)
-    cores = Vector{Array{Float64,3}}(undef,D)
-    for i = 1:D-1 # creating initial site-D tensor train
-        tmp      = qr(rand(rnks[i]*Md, rnks[i+1])).Q
-        cores[i] = reshape(Matrix(tmp),(rnks[i], Md, rnks[i+1]))
-    end
-    cores[D] = randn(rnks[D], Md, rnks[D+1])
-    return MPT(cores,D)
-end
-
-function initialTT(D::Int,Md::Int,rnks::Vector)
-    cores = Vector{Array{Float64,3}}(undef,D)
-    for i = 1:D # creating initial tensor train
-        cores[i] = rand(rnks[i], Md, rnks[i+1])
-    end
-    return MPT(cores)
-end
