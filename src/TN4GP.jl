@@ -1,6 +1,6 @@
 module TN4GP
 
-using Plots, BigMat, LinearAlgebra
+using Plots, BigMat, LinearAlgebra, SparseArrays
 
 export gensynthdata, covSE, gengriddata, fullGP, # basics
        colectofbasisfunc, ALS_krtt, getCovUnscTrans, khr2mat, getU,

@@ -86,6 +86,15 @@ function khr2mat(Φ::Vector{Matrix})
     return Φ_mat
 end
 
+function khr2mat(Φ::Vector{SparseMatrixCSC})
+    # computes the row-wise Khatri-Rao product for given set of matrices
+    Φ_mat = ones(size(Φ[1],1),1)
+    for d = size(Φ,1):-1:1
+        Φ_mat = KhatriRao(Φ_mat,Φ[d],1)
+    end    
+    return Φ_mat
+end
+
 function kr2ttm(A::Vector{Matrix})
     # transforms a set of matrices into rank-1-TTm
     D    = size(A,1)
