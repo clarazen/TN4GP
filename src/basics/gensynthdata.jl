@@ -66,7 +66,7 @@ function gengriddata(Md::Int,D::Int,min::Vector,max::Vector,m::Bool)
     Coord = Tuple(coord)
     if m == true
         i=1;
-        for d = 1:D
+        for d = D:-1:1
             X[:,i] = getindex.(Iterators.product(Coord...), d)[:]
             i = i+1
         end
@@ -95,7 +95,39 @@ function gengriddata(Md::Vector,D::Int,min::Vector,max::Vector,m::Bool)
     end
 end
 
-function covSE(Xp::Matrix{Float64},Xq::Matrix{Float64},hyp::Vector)
+# iso 1D
+function covSE(Xp::Vector{Float64},Xq::Vector{Float64},hyp::Vector{Float64})
+    ℓ     = hyp[1];
+    σ_f   = hyp[2];
+    
+    K = zeros(size(Xp,1),size(Xq,1))
+    for i = 1:size(Xp,1)
+        for j = 1:size(Xq,1)
+            exparg = norm(Xp[i]-Xq[j])^2/2ℓ
+            K[i,j] = σ_f * exp(-exparg)
+        end
+    end
+    return K
+end
+
+# iso
+function covSE(Xp::Matrix{Float64},Xq::Matrix{Float64},hyp::Vector{Float64})
+    ℓ     = hyp[1];
+    σ_f   = hyp[2];
+    D     = size(Xp,2)
+
+    K = zeros(size(Xp,1),size(Xq,1))
+    for i = 1:size(Xp,1)
+        for j = 1:size(Xq,1)
+            exparg = norm(Xp[i,:]-Xq[j,:])^2/2ℓ
+            K[i,j] = σ_f * exp(-exparg)
+        end
+    end
+    return K
+end
+
+# ard
+function covSE(Xp::Matrix{Float64},Xq::Matrix{Float64},hyp::Vector{Any})
     ℓ     = hyp[1];
     σ_f   = hyp[2];
     D     = size(Xp,2)
@@ -113,24 +145,7 @@ function covSE(Xp::Matrix{Float64},Xq::Matrix{Float64},hyp::Vector)
     return K
 end
 
-function covSE(Xp::Vector{Float64},Xq::Vector{Float64},hyp::Vector{Any})
-    ℓ     = hyp[1];
-    σ_f   = hyp[2];
-    D     = size(Xp,2)
-
-    K = zeros(size(Xp,1),size(Xq,1))
-    for i = 1:size(Xp,1)
-        for j = 1:size(Xq,1)
-            sum = 0
-            for d = 1:D
-                sum = sum + (Xp[i,d]-Xq[j,d])^2/2ℓ[d]
-            end
-            K[i,j] = σ_f * exp(-sum/2)
-        end
-    end
-    return K
-end
-
+# truncated
 function covSE(xp::Vector,xq::Vector,hyp::Vector,tr::Float64)
     # sqared exponential kernel (truncated)
     ℓ     = hyp[1];
