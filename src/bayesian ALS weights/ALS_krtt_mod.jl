@@ -97,3 +97,21 @@ function khr2ttm(W::Vector{Matrix})
     
     return MPT(coresW)
 end
+
+function khr2ttm(W::Vector{SparseMatrixCSC})
+    D      = size(W,1)
+    N      = size(W[1],1)
+    M      = size(W[1],2)
+    coresW = Vector{Array{Float64,4}}(undef,D)
+    
+    coresW[1] = reshape(W[1]',(1,1,M,N))
+    for d = 2:D
+        coresW[d] = zeros(N,1,M,N)
+        for m = 1:M
+            coresW[d][:,1,m,:] = Diagonal(W[d][:,m])
+        end
+    end
+    coresW[D] = permutedims(coresW[D],[1,4,3,2])
+    
+    return MPT(coresW)
+end

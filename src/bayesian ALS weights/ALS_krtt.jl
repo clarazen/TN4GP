@@ -77,7 +77,7 @@ function getU(tt::MPT{3},d::Int)
     return ttm
 end
 
-function khr2mat(Φ::Vector{Matrix})
+function khr2mat(Φ::Vector{Matrix{Float64}})
     # computes the row-wise Khatri-Rao product for given set of matrices
     Φ_mat = ones(size(Φ[1],1),1)
     for d = size(Φ,1):-1:1

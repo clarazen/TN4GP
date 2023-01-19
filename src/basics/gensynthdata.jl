@@ -59,7 +59,7 @@ end
 
 function gengriddata(Md::Int,D::Int,min::Vector,max::Vector,m::Bool)
     coord = Vector{Vector}(undef,D)
-    X     = zeros(Md^D,D)
+    X     = spzeros(Md^D,D)
     for d = 1:D
         coord[d] = range(min[d],max[d],length=Md) # coordinate in dth dimension
     end
@@ -78,7 +78,7 @@ end
 
 function gengriddata(Md::Vector,D::Int,min::Vector,max::Vector,m::Bool)
     coord = Vector{Vector}(undef,D)
-    X     = zeros(prod(Md),D)
+    X     = spzeros(prod(Md),D)
     for d = 1:D
         coord[d] = range(min[d],max[d],length=Md[d]) # coordinate in dth dimension
     end
